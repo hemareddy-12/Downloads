@@ -1,0 +1,252 @@
+{
+  "adminUsers": [
+    {
+      "id": "admin-1790568424303-1yvrg",
+      "email": "contact@hemareddy.com",
+      "name": "Hema Reddy (Owner & Admin)",
+      "role": "owner",
+      "salt": "a23208a343ef3cd956553c25df1b2ae7",
+      "passwordHash": "578c3854c21c43e4e708520ac1c895306ccbcf69a19b15f70f52617b27c8f0bc46162ec0782313388c1967c6d04f9886febeb499553b610bba89a6c59d7efe4b",
+      "createdAt": "2026-09-28T04:07:04.303Z"
+    },
+    {
+      "id": "admin-1790568424340-dlben",
+      "email": "admin@labelhemareddy.com",
+      "name": "Hema Reddy (Platform Admin)",
+      "role": "owner",
+      "salt": "3c418b9929dc7abc15329321edd96243",
+      "passwordHash": "38df9c604dcf2917d70e3b1efdba868c2b74a5e7846da4f566fd920db3819daecc258bd5ff40b2c83ac4b576bd53a991f9777d7a06af9d75c8569ea76a9036c0",
+      "createdAt": "2026-09-28T04:07:04.340Z"
+    },
+    {
+      "id": "admin-1790568424383-5rj3t",
+      "email": "lomadahemareddy@gmail.com",
+      "name": "Hema Reddy (Owner & Admin)",
+      "role": "owner",
+      "salt": "a4a51bf93ca4082437e81c8350c9810f",
+      "passwordHash": "430c6b8f2e6606aabab9c6f7bf3cb08611a3d1be310438db60c1b7af63a95a97facf444607326eee58a5a8d3a7365819250a80117af455d530dfd5db817c8b36",
+      "createdAt": "2026-09-28T04:07:04.383Z"
+    },
+    {
+      "id": "admin-1790569441345",
+      "email": "labelhemareddy@gmail.com",
+      "name": "Hema Reddy (Owner & Admin)",
+      "role": "owner",
+      "salt": "2f716b5b9943086035b06a6b6b8c01fe",
+      "passwordHash": "e6b11612ec26310cfb2f459909f73851c09f64c449f85da25a6b9df723098e0914b6c6e3c77b7c949b184ed4845c27e1bbb5da5f46d62f012272f178832de384",
+      "initialSetupCompleted": true,
+      "updatedAt": "2026-09-28T14:47:16.342Z",
+      "createdAt": "2026-09-28T04:24:01.345Z"
+    }
+  ],
+  "products": [],
+  "categories": [
+    {
+      "id": "sarees",
+      "name": "Sarees",
+      "slug": "sarees",
+      "description": "Handwoven Silks & Heirloom Drapes",
+      "image": "",
+      "featured": true
+    },
+    {
+      "id": "half-sarees",
+      "name": "Half Sarees",
+      "slug": "half-sarees",
+      "description": "Traditional Langa Vonis & Festive Ensembles",
+      "image": "",
+      "featured": true
+    },
+    {
+      "id": "dresses",
+      "name": "Dresses",
+      "slug": "dresses",
+      "description": "Designer Gowns, Anarkalis & Modern Silhouettes",
+      "image": "",
+      "featured": true
+    }
+  ],
+  "creations": [],
+  "stitchingServices": [
+    {
+      "id": "stitching-blouse",
+      "title": "Custom Blouse Stitching",
+      "description": "Perfect-fit designer blouse stitching with optional padding, custom necklines (sweetheart, boat neck, deep back), and piping.",
+      "price": "Starting from ₹1,200",
+      "turnaround": "4-7 business days",
+      "image": "",
+      "images": []
+    },
+    {
+      "id": "stitching-maggam",
+      "title": "Maggam & Aari Work Embroidery",
+      "description": "Authentic hand-embroidered zardozi, kundan, thread work, and moti work tailored to complement your saree motifs.",
+      "price": "Starting from ₹1500",
+      "turnaround": "7-14 business days",
+      "image": "",
+      "images": [],
+      "caption": "",
+      "updatedAt": "2026-09-28T14:48:25.581Z"
+    },
+    {
+      "id": "stitching-halfsaree",
+      "title": "Half Saree (Langa Voni) Tailoring",
+      "description": "Custom pleated lehenga flare with built-in double can-can lining, matching raw silk blouse, and coordinated voni drape.",
+      "price": "Starting from ₹4,500",
+      "turnaround": "7-12 business days",
+      "image": "",
+      "images": []
+    },
+    {
+      "id": "stitching-gown",
+      "title": "Designer Gown & Anarkali Stitching",
+      "description": "Made-to-measure evening gowns, reception dresses, and 32-kali flare anarkali suits crafted to your exact measurements.",
+      "price": "Starting from ₹5,000",
+      "turnaround": "10-15 business days",
+      "image": "",
+      "images": []
+    },
+    {
+      "id": "stitching-fallpico",
+      "title": "Saree Fall, Pico & Kuchu Tassels",
+      "description": "Neat saree fall stitching, edge pico finishing, and handmade silk thread kuchu tassels on the pallu.",
+      "price": "Starting from ₹350",
+      "turnaround": "7days",
+      "image": "/uploads/stitch_fallpico_1.jpeg",
+      "images": [
+        "/uploads/stitch_fallpico_1.jpeg",
+        "/uploads/stitch_fallpico_2.jpeg"
+      ],
+      "caption": "",
+      "updatedAt": "2026-09-28T06:48:16.704Z"
+    }
+  ],
+  "stitchingPhotos": [],
+  "brandSettings": {
+    "brandName": "hemareddy lomada",
+    "tagline": "",
+    "logoUrl": "/uploads/brand_logo.png",
+    "profilePhotoUrl": "",
+    "description": "Label Hema Reddy is a passion-driven label featuring  beautiful sarees, lehangas, dresses and we provide custom stitching , made with love and care.",
+    "watermarkSettings": {
+      "enabled": true,
+      "opacity": 0.05,
+      "size": 480,
+      "position": "center",
+      "fixed": true
+    },
+    "socialLinks": {
+      "instagram": "https://www.instagram.com/label__hemareddy?stkn=MXYzM3h0MGJqNHpxaQ==",
+      "instagramHandle": "Label HemaReddy",
+      "facebook": "",
+      "youtube": "",
+      "whatsapp": "6303781859",
+      "whatsappNumber": "6303781859",
+      "phone": "6303781859",
+      "email": "labelhemaredddy@gamil.com",
+      "address": "labelhemaredddy,  CHENNUR (mandal), KADAPA  (dist)",
+      "businessHours": "Mon - Sat: 10:30 AM - 8:00 PM"
+    }
+  },
+  "websiteSettings": {
+    "homepage": {
+      "heroHeading": "For Orders, Custom Stitching, and other enquiries, contact us here.",
+      "heroSubtitle": "",
+      "heroImageUrl": "",
+      "heroButtonText": "Explore Collections",
+      "heroButtonLink": "/shop",
+      "heroSecondaryButtonText": "My Creations",
+      "heroSecondaryButtonLink": "/creations",
+      "categorySectionTitle": "Curated Categories",
+      "categoryDescriptions": {
+        "sarees": "Beautiful sarees, carefully selected for every occasion and style.",
+        "half-sarees": "Elegant half sarees, perfect for adding a beautiful traditional touch to your special moments. ",
+        "dresses": "Designer Gowns, 2  piece sets, Anarkalis ,  and custom stitching for dresses, blouses, half sarees, and other outfits, tailored to your style and requirements."
+      },
+      "featuredSectionTitle": "Featured Designs",
+      "newArrivalsSectionTitle": "New Arrivals"
+    },
+    "contact": {
+      "phone": "6303781859",
+      "email": "labelhemareddy@gmail.com",
+      "whatsapp": "6303781859",
+      "whatsappNumber": "919876543210",
+      "address": "labelhemareddy, CHENNUR (mandal), KADAPA (dist)",
+      "contactPageInfo": "For appointments, bespoke design consultations, or order inquiries, reach out through phone, email, or WhatsApp.",
+      "businessHours": "Mon - Sat: 10:30 AM - 8:00 PM"
+    },
+    "social": {
+      "instagram": "https://instagram.com/hemareddy",
+      "instagramHandle": "@hemareddy",
+      "facebook": "",
+      "youtube": "",
+      "other": ""
+    },
+    "navigation": {
+      "menuNames": {
+        "home": "Home",
+        "shop": "Shop All",
+        "sarees": "Sarees",
+        "halfSarees": "Half Sarees",
+        "dresses": "Dresses",
+        "stitching": "Stitching",
+        "about": "About",
+        "contact": "Contact"
+      },
+      "visibleItems": {
+        "home": true,
+        "shop": true,
+        "sarees": true,
+        "halfSarees": true,
+        "dresses": true,
+        "stitching": true,
+        "about": true,
+        "contact": true
+      },
+      "footerText": "Bespoke Haute Couture Atelier & Stitching by hemareddy.",
+      "footerCopyright": "hemareddy. All rights reserved."
+    },
+    "appearance": {
+      "primaryColor": "#7A2021",
+      "secondaryColor": "#D4A949",
+      "backgroundColor": "#FAF7F5",
+      "textColor": "#201213"
+    }
+  },
+  "aboutSettings": {
+    "heading": "Stitching is more than a skill for me; it is a passion that allows me to turn ideas into outfits that feel personal and special. From traditional elegance to modern designs, every creation is made with care, creativity, and love for fashion.",
+    "subheading": "Where Heritage Weaves Meet Precision Haute Couture",
+    "photoUrl": "/uploads/about_profile.jpeg",
+    "quotation": "",
+    "introduction": "Welcome to hemareddy. Every creation, cut, and seam is personally designed and supervised to celebrate timeless craftsmanship and modern grace.",
+    "story": "What started at my personal stitching desk with hand-guided scissors and vintage looms quickly blossomed into hemareddy. Every stitch is placed with intention, ensuring each saree, lehenga, and gown feels like a second skin.",
+    "passion": "From selecting pure mulberry silks to hand-drawn embroidery patterns and exacting measurement cuts, my craft is anchored in celebrating the timeless grace of South Asian couture.",
+    "promise": "Established with one uncompromising promise: no two women are the same, and your ceremonial garments should reflect your distinct grandeur."
+  },
+  "contactSettings": {
+    "whatsapp": "6303781859",
+    "whatsappNumber": "6303781859",
+    "phone": "6303781859",
+    "email": "labelhemaredddy@gamil.com",
+    "instagram": "https://www.instagram.com/label__hemareddy?stkn=MXYzM3h0MGJqNHpxaQ==",
+    "instagramHandle": "Label HemaReddy",
+    "address": "labelhemaredddy,  CHENNUR (mandal), KADAPA  (dist)",
+    "contactText": "welcome to our label, where tradition meets creativity.\nwe bring together elegant sarees, unique designs, and thoughtfully crafted outfits, along with custom stitching made with care and attention to detail.\nfor orders, custom stitching, or any enquiries, please feel free to contact us.",
+    "businessHours": "Mon - Sat: 10:30 AM - 8:00 PM"
+  },
+  "orders": [],
+  "enquiries": [],
+  "messages": [],
+  "cloudStorageSettings": {
+    "provider": "auto",
+    "cloudinary": {
+      "cloudName": "",
+      "apiKey": "",
+      "apiSecret": "",
+      "folder": "label_hemareddy"
+    },
+    "imgbb": {
+      "apiKey": ""
+    }
+  }
+}
