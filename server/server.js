@@ -1247,8 +1247,12 @@ if (fs.existsSync(distDir)) {
   });
 }
 
-// Start server
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`[Label HemaReddy Server] Running on http://localhost:${PORT}`);
-  console.log(`[Label HemaReddy Server] Admin email: ${ADMIN_EMAIL}`);
-});
+// Start server when run directly (local development or standalone Node.js)
+if (!process.env.VERCEL) {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`[Label HemaReddy Server] Running on http://localhost:${PORT}`);
+    console.log(`[Label HemaReddy Server] Admin email: ${ADMIN_EMAIL}`);
+  });
+}
+
+export default app;
