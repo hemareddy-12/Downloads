@@ -3,6 +3,7 @@ import {
   doc, 
   getDocs, 
   addDoc, 
+  setDoc,
   updateDoc, 
   deleteDoc, 
   serverTimestamp 
@@ -107,11 +108,34 @@ export const createStitchingService = async (serviceData) => {
 };
 
 export const updateStitchingService = async (id, serviceData) => {
+  const rawPrice = serviceData.startingPrice || serviceData.price || '';
+  const priceNumber = String(rawPrice).replace(/[^0-9]/g, '');
+  const finalPrice = priceNumber ? `Starting from ₹${priceNumber}` : rawPrice;
+
   const payload = {
     ...serviceData,
+    price: finalPrice,
+    startingPrice: finalPrice,
     images: serviceData.images || (serviceData.image ? [serviceData.image] : []),
   };
 
+  console.log('updateStitchingService updating ID:', id, payload);
+
+  // 1. Firebase update with setDoc merge: true
+  if (isFirebaseConfigured && db) {
+    try {
+      console.log('Firebase setDoc with merge:true for stitching ID:', id);
+      await setDoc(doc(db, STITCHING_COLLECTION, id), {
+        ...payload,
+        updatedAt: serverTimestamp(),
+      }, { merge: true });
+      console.log('Firebase stitching update successful for ID:', id);
+    } catch (err) {
+      console.error('Firebase stitching update error for id:', id, err);
+    }
+  }
+
+  // 2. Express Backend API update
   try {
     const result = await apiPut(`/api/stitching/${id}`, payload);
     if (result) {
@@ -123,26 +147,23 @@ export const updateStitchingService = async (id, serviceData) => {
       }
       return result;
     }
-  } catch (e) {}
-
-  if (isFirebaseConfigured && db) {
-    try {
-      await updateDoc(doc(db, STITCHING_COLLECTION, id), {
-        ...payload,
-        updatedAt: serverTimestamp(),
-      });
-      return { id, ...payload };
-    } catch (err) {}
+  } catch (e) {
+    console.error('Backend API stitching update error for id:', id, e);
   }
 
+  // 3. Local storage update
   const services = getLocalServices();
   const idx = services.findIndex(s => s.id === id);
   if (idx !== -1) {
     services[idx] = { ...services[idx], ...payload, updatedAt: new Date().toISOString() };
     setLocalServices(services);
     return services[idx];
+  } else {
+    const fallback = { id, ...payload, updatedAt: new Date().toISOString() };
+    services.push(fallback);
+    setLocalServices(services);
+    return fallback;
   }
-  throw new Error('Stitching service not found');
 };
 
 export const deleteStitchingService = async (id) => {

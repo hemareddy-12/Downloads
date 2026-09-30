@@ -90,10 +90,13 @@ export const AdminStitching = () => {
         ? service.images
         : (service.image ? [service.image] : []);
 
+      const existingPrice = service.startingPrice || service.price || '';
+
       setServiceForm({
         title: service.title || '',
         description: service.description || '',
-        price: service.price || '',
+        price: existingPrice,
+        startingPrice: existingPrice,
         turnaround: service.turnaround || '',
         caption: service.caption || '',
         images: serviceImages,
@@ -105,6 +108,7 @@ export const AdminStitching = () => {
         title: '',
         description: '',
         price: '',
+        startingPrice: '',
         turnaround: '',
         caption: '',
         images: [],
@@ -181,38 +185,71 @@ export const AdminStitching = () => {
     });
   };
 
+  const toast = {
+    success: (msg) => showNotification(msg, 'success'),
+    error: (msg) => showNotification(msg, 'error'),
+  };
+
   const handleSaveService = async (e) => {
     e.preventDefault();
     if (!serviceForm.title.trim()) {
-      showNotification('Service name is required', 'error');
+      toast.error('Service name is required');
       return;
     }
 
     try {
       setSubmittingService(true);
+
+      // 3. Parse price correctly: extract digits, format with "Starting from ₹${priceNumber}"
+      const rawPrice = serviceForm.startingPrice || serviceForm.price || '';
+      const priceNumber = String(rawPrice).replace(/[^0-9]/g, '');
+      const finalPrice = priceNumber ? `Starting from ₹${priceNumber}` : rawPrice;
+
+      // 2. REMOVE required validation for images - make images optional.
+      // If user doesn't upload new images, keep existing images array as is. Do not check if image URL is broken.
+      const existingImages = Array.isArray(editingService?.images) && editingService.images.length > 0
+        ? editingService.images
+        : (editingService?.image ? [editingService.image] : []);
+
+      const finalImages = (Array.isArray(serviceForm.images) && serviceForm.images.length > 0)
+        ? serviceForm.images
+        : existingImages;
+
       const payload = {
         title: serviceForm.title.trim(),
-        description: serviceForm.description.trim(),
-        price: serviceForm.price.trim(),
-        turnaround: serviceForm.turnaround.trim(),
-        caption: serviceForm.caption.trim(),
-        images: serviceForm.images,
-        image: serviceForm.images[0] || '',
+        description: (serviceForm.description || '').trim(),
+        price: finalPrice,
+        startingPrice: finalPrice,
+        turnaround: (serviceForm.turnaround || '').trim(),
+        caption: (serviceForm.caption || '').trim(),
+        images: finalImages,
+        image: finalImages[0] || '',
       };
 
       if (editingService) {
-        await updateStitchingService(editingService.id, payload);
-        showNotification('Stitching service updated successfully!');
+        const editingId = editingService.id;
+        console.log('Updating stitching service for editingId:', editingId, payload);
+        await updateStitchingService(editingId, payload);
+
+        // 5. After successful update, immediately update UI state:
+        setServices(prev => prev.map(s => s.id === editingId ? { ...s, ...payload, startingPrice: finalPrice, price: finalPrice } : s));
+
+        // 6. Add toast.success("Price Updated!")
+        toast.success("Price Updated!");
       } else {
-        await createStitchingService(payload);
-        showNotification('New stitching service created!');
+        const newService = await createStitchingService(payload);
+        if (newService) {
+          setServices(prev => [...prev, newService]);
+        }
+        toast.success("New stitching service created!");
       }
 
       setIsModalOpen(false);
-      await loadData();
+      // Background reload without overwriting optimistic update
+      loadData();
     } catch (err) {
       console.error('Error saving stitching service:', err);
-      showNotification('Failed to save service', 'error');
+      toast.error(err.message || 'Failed to save service');
     } finally {
       setSubmittingService(false);
     }
@@ -450,10 +487,10 @@ export const AdminStitching = () => {
                         </p>
 
                         <div className="pt-2 border-t border-charcoal-100 space-y-1.5 text-xs">
-                          {service.price && (
+                          {(service.startingPrice || service.price) && (
                             <div className="flex items-center gap-2 text-charcoal-800">
                               <Tag className="w-3.5 h-3.5 text-gold-600" />
-                              <span className="font-semibold text-charcoal-950">{service.price}</span>
+                              <span className="font-semibold text-charcoal-950">{service.startingPrice || service.price}</span>
                             </div>
                           )}
                           {service.turnaround && (
@@ -726,9 +763,12 @@ export const AdminStitching = () => {
                   </label>
                   <input
                     type="text"
-                    value={serviceForm.price}
-                    onChange={(e) => setServiceForm({ ...serviceForm, price: e.target.value })}
-                    placeholder="e.g. Starting from ₹1,500"
+                    value={serviceForm.startingPrice || serviceForm.price || ''}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setServiceForm(prev => ({ ...prev, price: val, startingPrice: val }));
+                    }}
+                    placeholder="e.g. Starting from ₹500"
                     className="w-full p-3 border border-charcoal-300 rounded-sm focus:outline-none focus:border-gold-500 text-xs"
                   />
                 </div>

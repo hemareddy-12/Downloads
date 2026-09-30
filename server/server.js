@@ -752,13 +752,30 @@ app.post('/api/stitching', requireAdmin, (req, res) => {
 
 app.put('/api/stitching/:id', requireAdmin, (req, res) => {
   const db = readDb();
-  const idx = (db.stitchingServices || []).findIndex(s => s.id === req.params.id);
+  db.stitchingServices = db.stitchingServices || [];
+  const idx = db.stitchingServices.findIndex(s => s.id === req.params.id);
+  
+  const rawPrice = req.body.startingPrice || req.body.price || '';
+  const priceNumber = String(rawPrice).replace(/[^0-9]/g, '');
+  const finalPrice = priceNumber ? `Starting from ₹${priceNumber}` : rawPrice;
+
+  const updatedData = {
+    ...req.body,
+    price: finalPrice || req.body.price,
+    startingPrice: finalPrice || req.body.startingPrice,
+    updatedAt: new Date().toISOString(),
+  };
+
   if (idx !== -1) {
-    db.stitchingServices[idx] = { ...db.stitchingServices[idx], ...req.body, updatedAt: new Date().toISOString() };
+    db.stitchingServices[idx] = { ...db.stitchingServices[idx], ...updatedData };
     writeDb(db);
     return res.json(db.stitchingServices[idx]);
+  } else {
+    const newService = { id: req.params.id, ...updatedData };
+    db.stitchingServices.push(newService);
+    writeDb(db);
+    return res.json(newService);
   }
-  return res.status(404).json({ error: 'Stitching service not found' });
 });
 
 app.delete('/api/stitching/:id', requireAdmin, (req, res) => {

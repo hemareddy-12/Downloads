@@ -188,10 +188,10 @@ export const CustomStitchingPage = () => {
                     </p>
 
                     <div className="pt-3 border-t border-gold-100 space-y-2 text-xs">
-                      {service.price && (
+                      {(service.startingPrice || service.price) && (
                         <div className="flex items-center gap-2 text-charcoal-900 font-semibold">
                           <Tag className="w-3.5 h-3.5 text-gold-600" />
-                          <span>{service.price}</span>
+                          <span>{service.startingPrice || service.price}</span>
                         </div>
                       )}
                       {service.turnaround && (
