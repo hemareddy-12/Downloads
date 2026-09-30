@@ -1,6 +1,7 @@
 import { 
   doc, 
   getDoc, 
+  getDocFromServer,
   setDoc, 
   serverTimestamp 
 } from 'firebase/firestore';
@@ -20,14 +21,42 @@ const WEBSITE_DOC = 'website';
 const ABOUT_DOC = 'about';
 const CONTACT_DOC = 'contact';
 
-const LOCAL_BRAND_KEY = 'hemareddy_brand_settings_v2';
-const LOCAL_WEBSITE_KEY = 'hemareddy_website_settings_v2';
-const LOCAL_ABOUT_KEY = 'hemareddy_about_settings_v1';
-const LOCAL_CONTACT_KEY = 'hemareddy_contact_settings_v1';
+const LOCAL_BRAND_KEY = 'hemareddy_brand_settings_v3';
+const LOCAL_WEBSITE_KEY = 'hemareddy_website_settings_v3';
+const LOCAL_ABOUT_KEY = 'hemareddy_about_settings_v2';
+const LOCAL_CONTACT_KEY = 'hemareddy_contact_settings_v2';
 
 // ================= BRAND SETTINGS =================
 
 export const getBrandSettings = async () => {
+  // 1. PRIMARY: Firestore with NO CACHE
+  if (isFirebaseConfigured && db) {
+    try {
+      let snap;
+      try {
+        snap = await getDocFromServer(doc(db, SETTINGS_COLLECTION, BRAND_DOC));
+      } catch (e) {
+        snap = await getDoc(doc(db, SETTINGS_COLLECTION, BRAND_DOC));
+      }
+      if (snap && snap.exists()) {
+        const merged = { ...initialBrandSettings, ...snap.data() };
+        localStorage.setItem(LOCAL_BRAND_KEY, JSON.stringify(merged));
+        return merged;
+      }
+    } catch (err) {
+      console.warn('[settingsService] Firestore getBrandSettings error:', err);
+    }
+  }
+
+  // 2. Local fallback
+  const saved = localStorage.getItem(LOCAL_BRAND_KEY);
+  if (saved) {
+    try {
+      return { ...initialBrandSettings, ...JSON.parse(saved) };
+    } catch (e) {}
+  }
+
+  // 3. Server fallback
   try {
     const serverData = await apiGet('/api/settings/brand');
     if (serverData && serverData.brandName) {
@@ -36,47 +65,60 @@ export const getBrandSettings = async () => {
     }
   } catch (e) {}
 
-  if (isFirebaseConfigured && db) {
-    try {
-      const snap = await getDoc(doc(db, SETTINGS_COLLECTION, BRAND_DOC));
-      if (snap.exists()) {
-        return { ...initialBrandSettings, ...snap.data() };
-      }
-    } catch (err) {}
-  }
-
-  const saved = localStorage.getItem(LOCAL_BRAND_KEY);
-  if (saved) {
-    try {
-      return { ...initialBrandSettings, ...JSON.parse(saved) };
-    } catch (e) {}
-  }
   return initialBrandSettings;
 };
 
 export const saveBrandSettings = async (settings) => {
   const merged = { ...initialBrandSettings, ...settings };
-  
-  try {
-    await apiPut('/api/settings/brand', merged);
-  } catch (e) {}
 
+  // 1. PRIMARY: Firestore
   if (isFirebaseConfigured && db) {
     try {
       await setDoc(doc(db, SETTINGS_COLLECTION, BRAND_DOC), {
         ...merged,
         updatedAt: serverTimestamp(),
       }, { merge: true });
-    } catch (err) {}
+    } catch (err) {
+      console.error('[settingsService] Firestore saveBrandSettings error:', err);
+    }
   }
 
   localStorage.setItem(LOCAL_BRAND_KEY, JSON.stringify(merged));
+  apiPut('/api/settings/brand', merged).catch(() => {});
   return merged;
 };
 
 // ================= WEBSITE SETTINGS =================
 
 export const getWebsiteSettings = async () => {
+  // 1. PRIMARY: Firestore with NO CACHE
+  if (isFirebaseConfigured && db) {
+    try {
+      let snap;
+      try {
+        snap = await getDocFromServer(doc(db, SETTINGS_COLLECTION, WEBSITE_DOC));
+      } catch (e) {
+        snap = await getDoc(doc(db, SETTINGS_COLLECTION, WEBSITE_DOC));
+      }
+      if (snap && snap.exists()) {
+        const merged = { ...initialWebsiteSettings, ...snap.data() };
+        localStorage.setItem(LOCAL_WEBSITE_KEY, JSON.stringify(merged));
+        return merged;
+      }
+    } catch (err) {
+      console.warn('[settingsService] Firestore getWebsiteSettings error:', err);
+    }
+  }
+
+  // 2. Local fallback
+  const saved = localStorage.getItem(LOCAL_WEBSITE_KEY);
+  if (saved) {
+    try {
+      return { ...initialWebsiteSettings, ...JSON.parse(saved) };
+    } catch (e) {}
+  }
+
+  // 3. Server fallback
   try {
     const serverData = await apiGet('/api/settings/website');
     if (serverData && serverData.homepage) {
@@ -85,150 +127,150 @@ export const getWebsiteSettings = async () => {
     }
   } catch (e) {}
 
-  if (isFirebaseConfigured && db) {
-    try {
-      const snap = await getDoc(doc(db, SETTINGS_COLLECTION, WEBSITE_DOC));
-      if (snap.exists()) {
-        return { ...initialWebsiteSettings, ...snap.data() };
-      }
-    } catch (err) {}
-  }
-
-  const saved = localStorage.getItem(LOCAL_WEBSITE_KEY);
-  if (saved) {
-    try {
-      return { ...initialWebsiteSettings, ...JSON.parse(saved) };
-    } catch (e) {}
-  }
   return initialWebsiteSettings;
 };
 
 export const saveWebsiteSettings = async (settings) => {
   const merged = { ...initialWebsiteSettings, ...settings };
 
-  try {
-    await apiPut('/api/settings/website', merged);
-  } catch (e) {}
-
+  // 1. PRIMARY: Firestore
   if (isFirebaseConfigured && db) {
     try {
       await setDoc(doc(db, SETTINGS_COLLECTION, WEBSITE_DOC), {
         ...merged,
         updatedAt: serverTimestamp(),
       }, { merge: true });
-    } catch (err) {}
+    } catch (err) {
+      console.error('[settingsService] Firestore saveWebsiteSettings error:', err);
+    }
   }
 
   localStorage.setItem(LOCAL_WEBSITE_KEY, JSON.stringify(merged));
+  apiPut('/api/settings/website', merged).catch(() => {});
   return merged;
 };
 
 // ================= ABOUT SETTINGS =================
 
 export const getAboutSettings = async () => {
+  // 1. PRIMARY: Firestore with NO CACHE
+  if (isFirebaseConfigured && db) {
+    try {
+      let snap;
+      try {
+        snap = await getDocFromServer(doc(db, SETTINGS_COLLECTION, ABOUT_DOC));
+      } catch (e) {
+        snap = await getDoc(doc(db, SETTINGS_COLLECTION, ABOUT_DOC));
+      }
+      if (snap && snap.exists()) {
+        const merged = { ...initialAboutSettings, ...snap.data() };
+        localStorage.setItem(LOCAL_ABOUT_KEY, JSON.stringify(merged));
+        return merged;
+      }
+    } catch (err) {
+      console.warn('[settingsService] Firestore getAboutSettings error:', err);
+    }
+  }
+
+  // 2. Local fallback
+  const saved = localStorage.getItem(LOCAL_ABOUT_KEY);
+  if (saved) {
+    try {
+      return { ...initialAboutSettings, ...JSON.parse(saved) };
+    } catch (e) {}
+  }
+
+  // 3. Server fallback
   try {
     const serverData = await apiGet('/api/settings/about');
-    if (serverData) {
-      if (serverData.photoUrl && serverData.photoUrl.includes('unsplash.com/photo-1534528741775')) {
-        serverData.photoUrl = '';
-      }
+    if (serverData && serverData.heading) {
       localStorage.setItem(LOCAL_ABOUT_KEY, JSON.stringify(serverData));
       return { ...initialAboutSettings, ...serverData };
     }
   } catch (e) {}
 
-  if (isFirebaseConfigured && db) {
-    try {
-      const snap = await getDoc(doc(db, SETTINGS_COLLECTION, ABOUT_DOC));
-      if (snap.exists()) {
-        const data = snap.data();
-        if (data.photoUrl && data.photoUrl.includes('unsplash.com/photo-1534528741775')) {
-          data.photoUrl = '';
-        }
-        return { ...initialAboutSettings, ...data };
-      }
-    } catch (err) {}
-  }
-
-  const saved = localStorage.getItem(LOCAL_ABOUT_KEY);
-  if (saved) {
-    try {
-      const parsed = JSON.parse(saved);
-      if (parsed.photoUrl && parsed.photoUrl.includes('unsplash.com/photo-1534528741775')) {
-        parsed.photoUrl = '';
-      }
-      return { ...initialAboutSettings, ...parsed };
-    } catch (e) {}
-  }
   return initialAboutSettings;
 };
 
 export const saveAboutSettings = async (settings) => {
   const merged = { ...initialAboutSettings, ...settings };
 
-  try {
-    await apiPut('/api/settings/about', merged);
-  } catch (e) {}
-
+  // 1. PRIMARY: Firestore
   if (isFirebaseConfigured && db) {
     try {
       await setDoc(doc(db, SETTINGS_COLLECTION, ABOUT_DOC), {
         ...merged,
         updatedAt: serverTimestamp(),
       }, { merge: true });
-    } catch (err) {}
+    } catch (err) {
+      console.error('[settingsService] Firestore saveAboutSettings error:', err);
+    }
   }
 
   localStorage.setItem(LOCAL_ABOUT_KEY, JSON.stringify(merged));
+  apiPut('/api/settings/about', merged).catch(() => {});
   return merged;
 };
 
 // ================= CONTACT SETTINGS =================
 
 export const getContactSettings = async () => {
-  try {
-    const serverData = await apiGet('/api/settings/contact');
-    if (serverData) {
-      localStorage.setItem(LOCAL_CONTACT_KEY, JSON.stringify(serverData));
-      return { ...initialContactSettings, ...serverData };
-    }
-  } catch (e) {}
-
+  // 1. PRIMARY: Firestore with NO CACHE
   if (isFirebaseConfigured && db) {
     try {
-      const snap = await getDoc(doc(db, SETTINGS_COLLECTION, CONTACT_DOC));
-      if (snap.exists()) {
-        return { ...initialContactSettings, ...snap.data() };
+      let snap;
+      try {
+        snap = await getDocFromServer(doc(db, SETTINGS_COLLECTION, CONTACT_DOC));
+      } catch (e) {
+        snap = await getDoc(doc(db, SETTINGS_COLLECTION, CONTACT_DOC));
       }
-    } catch (err) {}
+      if (snap && snap.exists()) {
+        const merged = { ...initialContactSettings, ...snap.data() };
+        localStorage.setItem(LOCAL_CONTACT_KEY, JSON.stringify(merged));
+        return merged;
+      }
+    } catch (err) {
+      console.warn('[settingsService] Firestore getContactSettings error:', err);
+    }
   }
 
+  // 2. Local fallback
   const saved = localStorage.getItem(LOCAL_CONTACT_KEY);
   if (saved) {
     try {
       return { ...initialContactSettings, ...JSON.parse(saved) };
     } catch (e) {}
   }
+
+  // 3. Server fallback
+  try {
+    const serverData = await apiGet('/api/settings/contact');
+    if (serverData && serverData.phone) {
+      localStorage.setItem(LOCAL_CONTACT_KEY, JSON.stringify(serverData));
+      return { ...initialContactSettings, ...serverData };
+    }
+  } catch (e) {}
+
   return initialContactSettings;
 };
 
 export const saveContactSettings = async (settings) => {
   const merged = { ...initialContactSettings, ...settings };
 
-  try {
-    await apiPut('/api/settings/contact', merged);
-  } catch (e) {}
-
+  // 1. PRIMARY: Firestore
   if (isFirebaseConfigured && db) {
     try {
       await setDoc(doc(db, SETTINGS_COLLECTION, CONTACT_DOC), {
         ...merged,
         updatedAt: serverTimestamp(),
       }, { merge: true });
-    } catch (err) {}
+    } catch (err) {
+      console.error('[settingsService] Firestore saveContactSettings error:', err);
+    }
   }
 
   localStorage.setItem(LOCAL_CONTACT_KEY, JSON.stringify(merged));
+  apiPut('/api/settings/contact', merged).catch(() => {});
   return merged;
 };
 
@@ -297,4 +339,3 @@ export const saveStorageSettings = async (settings) => {
 export const testStorageSettings = async (payload) => {
   return await apiPost('/api/settings/storage/test', payload);
 };
-

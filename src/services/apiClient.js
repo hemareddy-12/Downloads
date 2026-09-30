@@ -57,7 +57,15 @@ export const apiFetch = async (endpoint, options = {}) => {
   }
 };
 
-export const apiGet = (endpoint) => apiFetch(endpoint, { method: 'GET' });
+export const apiGet = (endpoint) => apiFetch(endpoint, { 
+  method: 'GET',
+  cache: 'no-store',
+  headers: {
+    'Cache-Control': 'no-cache, no-store, must-revalidate',
+    'Pragma': 'no-cache',
+    'Expires': '0'
+  }
+});
 export const apiPost = (endpoint, data) => apiFetch(endpoint, { method: 'POST', body: JSON.stringify(data) });
 export const apiPut = (endpoint, data) => apiFetch(endpoint, { method: 'PUT', body: JSON.stringify(data) });
 export const apiDelete = (endpoint) => apiFetch(endpoint, { method: 'DELETE' });

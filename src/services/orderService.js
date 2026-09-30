@@ -2,7 +2,11 @@ import {
   collection, 
   doc, 
   getDocs, 
+  getDocsFromServer,
+  getDoc,
+  getDocFromServer,
   addDoc, 
+  setDoc,
   updateDoc, 
   query, 
   serverTimestamp 
@@ -38,7 +42,23 @@ export const createOrder = async (orderData) => {
     createdAt: new Date().toISOString(),
   };
 
-  // 1. Try server API
+  // 1. PRIMARY: Firebase
+  if (isFirebaseConfigured && db) {
+    try {
+      const docRef = await addDoc(collection(db, ORDERS_COLLECTION), {
+        ...newOrder,
+        serverCreatedAt: serverTimestamp(),
+      });
+      const created = { id: docRef.id, ...newOrder };
+      const orders = getLocalOrders();
+      orders.unshift(created);
+      setLocalOrders(orders);
+      apiPost('/api/orders', newOrder).catch(() => {});
+      return created;
+    } catch (err) {}
+  }
+
+  // 2. Server API
   try {
     const res = await apiPost('/api/orders', newOrder);
     if (res && res.orderId) {
@@ -49,17 +69,6 @@ export const createOrder = async (orderData) => {
     }
   } catch (e) {}
 
-  // 2. Try Firebase
-  if (isFirebaseConfigured && db) {
-    try {
-      const docRef = await addDoc(collection(db, ORDERS_COLLECTION), {
-        ...newOrder,
-        serverCreatedAt: serverTimestamp(),
-      });
-      return { id: docRef.id, ...newOrder };
-    } catch (err) {}
-  }
-
   // 3. Fallback to local
   const orders = getLocalOrders();
   const orderWithLocalId = { id: `ord-${Date.now()}`, ...newOrder };
@@ -69,6 +78,29 @@ export const createOrder = async (orderData) => {
 };
 
 export const getOrders = async () => {
+  // 1. PRIMARY: Firestore with NO CACHE
+  if (isFirebaseConfigured && db) {
+    try {
+      let snapshot;
+      try {
+        snapshot = await getDocsFromServer(query(collection(db, ORDERS_COLLECTION)));
+      } catch (e) {
+        snapshot = await getDocs(query(collection(db, ORDERS_COLLECTION)));
+      }
+      if (snapshot) {
+        const orders = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        orders.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+        setLocalOrders(orders);
+        return orders;
+      }
+    } catch (err) {}
+  }
+
+  // 2. Local fallback
+  const local = getLocalOrders();
+  if (local && local.length > 0) return local;
+
+  // 3. Server fallback
   try {
     const serverOrders = await apiGet('/api/orders');
     if (Array.isArray(serverOrders)) {
@@ -77,54 +109,44 @@ export const getOrders = async () => {
     }
   } catch (e) {}
 
-  if (isFirebaseConfigured && db) {
-    try {
-      const q = query(collection(db, ORDERS_COLLECTION));
-      const snapshot = await getDocs(q);
-      const orders = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-      return orders.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
-    } catch (err) {}
-  }
-  return getLocalOrders();
+  return [];
 };
 
 export const getOrderByIdOrCode = async (idOrCode) => {
+  const orders = await getOrders();
+  const found = orders.find(o => 
+    o.id?.toLowerCase() === idOrCode?.toLowerCase() || 
+    o.orderId?.toLowerCase() === idOrCode?.toLowerCase()
+  );
+  if (found) return found;
+
   // Try tracking endpoint on server
   try {
     const order = await apiGet(`/api/orders/track/${encodeURIComponent(idOrCode)}`);
     if (order) return order;
   } catch (e) {}
 
-  const orders = await getOrders();
-  return orders.find(o => 
-    o.id?.toLowerCase() === idOrCode?.toLowerCase() || 
-    o.orderId?.toLowerCase() === idOrCode?.toLowerCase()
-  ) || null;
+  return null;
 };
 
-export const updateOrderStatus = async (id, statusData) => {
-  try {
-    const updated = await apiPut(`/api/orders/${id}/status`, statusData);
-    if (updated) return updated;
-  } catch (e) {}
-
+export const updateOrderStatus = async (orderId, statusData) => {
+  // 1. PRIMARY: Firestore
   if (isFirebaseConfigured && db) {
     try {
-      const docRef = doc(db, ORDERS_COLLECTION, id);
-      await updateDoc(docRef, {
+      await updateDoc(doc(db, ORDERS_COLLECTION, orderId), {
         ...statusData,
         updatedAt: serverTimestamp(),
       });
-      return { id, ...statusData };
     } catch (err) {}
   }
 
   const orders = getLocalOrders();
-  const idx = orders.findIndex(o => o.id === id || o.orderId === id);
+  const idx = orders.findIndex(o => o.id === orderId || o.orderId === orderId);
   if (idx !== -1) {
-    orders[idx] = { ...orders[idx], ...statusData, updatedAt: new Date().toISOString() };
+    orders[idx] = { ...orders[idx], ...statusData };
     setLocalOrders(orders);
-    return orders[idx];
   }
-  throw new Error('Order not found');
+
+  apiPut(`/api/orders/${orderId}/status`, statusData).catch(() => {});
+  return { success: true };
 };

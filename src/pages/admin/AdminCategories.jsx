@@ -26,7 +26,7 @@ export const AdminCategories = () => {
       name: '',
       slug: '',
       description: '',
-      image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?q=80&w=800',
+      image: '',
       featured: true,
     });
     setError('');

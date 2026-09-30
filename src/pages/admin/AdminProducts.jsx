@@ -36,6 +36,7 @@ export const AdminProducts = () => {
     price: '',
     discountPrice: '',
     color: '',
+    fabric: '',
     sizes: ['Free Size'],
     stock: 1,
     inStock: true,
@@ -70,6 +71,7 @@ export const AdminProducts = () => {
       price: product.price || '',
       discountPrice: product.discountPrice || '',
       color: product.color || (Array.isArray(product.colors) ? product.colors.join(', ') : ''),
+      fabric: product.fabric || '',
       sizes: Array.isArray(product.sizes) ? product.sizes : (product.sizes ? [product.sizes] : []),
       images: product.images || [],
     });
@@ -165,6 +167,7 @@ export const AdminProducts = () => {
         inStock: Number(formData.stock) > 0,
         color: formData.color.trim(),
         colors: formData.color ? [formData.color.trim()] : [],
+        fabric: (formData.fabric || '').trim(),
         sizes: formData.sizes && formData.sizes.length > 0 ? formData.sizes : ['Free Size'],
         isNew: Boolean(formData.isNew),
         isFeatured: Boolean(formData.isFeatured),
@@ -502,8 +505,8 @@ export const AdminProducts = () => {
                 </div>
               </div>
 
-              {/* Pricing, Discount, Colour, Stock */}
-              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+              {/* Pricing, Discount, Colour, Fabric, Stock */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-4">
                 <div>
                   <label className="block uppercase font-semibold text-charcoal-700 mb-1">
                     Price (₹ INR) *
@@ -520,7 +523,7 @@ export const AdminProducts = () => {
 
                 <div>
                   <label className="block uppercase font-semibold text-charcoal-700 mb-1">
-                    Optional Discount Price (₹)
+                    Optional Discount (₹)
                   </label>
                   <input
                     type="number"
@@ -540,6 +543,19 @@ export const AdminProducts = () => {
                     value={formData.color}
                     onChange={(e) => setFormData({ ...formData, color: e.target.value })}
                     placeholder="e.g. Royal Blue"
+                    className="w-full p-2.5 border border-gold-200 rounded-sm focus:outline-none focus:border-gold-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block uppercase font-semibold text-charcoal-700 mb-1">
+                    Fabric / Material
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.fabric}
+                    onChange={(e) => setFormData({ ...formData, fabric: e.target.value })}
+                    placeholder="e.g. Pure Silk"
                     className="w-full p-2.5 border border-gold-200 rounded-sm focus:outline-none focus:border-gold-500"
                   />
                 </div>

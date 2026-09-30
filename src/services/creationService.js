@@ -2,8 +2,9 @@ import {
   collection, 
   doc, 
   getDocs, 
+  getDocsFromServer,
   addDoc, 
-  updateDoc, 
+  setDoc,
   deleteDoc, 
   serverTimestamp 
 } from 'firebase/firestore';
@@ -11,7 +12,7 @@ import { db, isFirebaseConfigured } from './firebase';
 import { apiGet, apiPost, apiPut, apiDelete } from './apiClient';
 
 const CREATIONS_COLLECTION = 'creations';
-const LOCAL_CREATIONS_KEY = 'hemareddy_creations_v1';
+const LOCAL_CREATIONS_KEY = 'hemareddy_creations_v2';
 
 const getLocalCreations = () => {
   const data = localStorage.getItem(LOCAL_CREATIONS_KEY);
@@ -28,7 +29,34 @@ const setLocalCreations = (creations) => {
 };
 
 export const getCreations = async () => {
-  // 1. Try server API
+  // 1. PRIMARY: Firestore with NO CACHE
+  if (isFirebaseConfigured && db) {
+    try {
+      let snap;
+      try {
+        snap = await getDocsFromServer(collection(db, CREATIONS_COLLECTION));
+      } catch (e) {
+        snap = await getDocs(collection(db, CREATIONS_COLLECTION));
+      }
+      if (snap) {
+        const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        items.sort((a, b) => (a.order ?? 9999) - (b.order ?? 9999));
+        setLocalCreations(items);
+        return items;
+      }
+    } catch (err) {
+      console.warn('[creationService] Firestore getCreations error:', err);
+    }
+  }
+
+  // 2. Local fallback
+  const items = getLocalCreations();
+  if (items && items.length > 0) {
+    items.sort((a, b) => (a.order ?? 9999) - (b.order ?? 9999));
+    return items;
+  }
+
+  // 3. Server fallback
   try {
     const list = await apiGet('/api/creations');
     if (Array.isArray(list)) {
@@ -37,22 +65,7 @@ export const getCreations = async () => {
     }
   } catch (e) {}
 
-  // 2. Try Firestore
-  if (isFirebaseConfigured && db) {
-    try {
-      const snap = await getDocs(collection(db, CREATIONS_COLLECTION));
-      if (!snap.empty) {
-        const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        items.sort((a, b) => (a.order ?? 9999) - (b.order ?? 9999));
-        return items;
-      }
-    } catch (err) {}
-  }
-
-  // 3. Fallback to local
-  const items = getLocalCreations();
-  items.sort((a, b) => (a.order ?? 9999) - (b.order ?? 9999));
-  return items;
+  return [];
 };
 
 export const createCreation = async (creationData) => {
@@ -68,29 +81,25 @@ export const createCreation = async (creationData) => {
     createdAt: new Date().toISOString(),
   };
 
-  // 1. Try server API
-  try {
-    const result = await apiPost('/api/creations', payload);
-    if (result && result.id) {
-      const list = getLocalCreations();
-      list.push(result);
-      setLocalCreations(list);
-      return result;
-    }
-  } catch (e) {}
-
-  // 2. Try Firestore
+  // 1. PRIMARY: Firestore
   if (isFirebaseConfigured && db) {
     try {
       const docRef = await addDoc(collection(db, CREATIONS_COLLECTION), {
         ...payload,
         createdAt: serverTimestamp(),
       });
-      return { id: docRef.id, ...payload };
-    } catch (err) {}
+      const created = { id: docRef.id, ...payload };
+      const list = getLocalCreations();
+      list.push(created);
+      setLocalCreations(list);
+      apiPost('/api/creations', payload).catch(() => {});
+      return created;
+    } catch (err) {
+      console.error('[creationService] Firestore create error:', err);
+    }
   }
 
-  // 3. Local fallback
+  // 2. Local fallback
   const creations = getLocalCreations();
   const newCreation = {
     id: `creation-${Date.now()}`,
@@ -98,87 +107,61 @@ export const createCreation = async (creationData) => {
   };
   creations.push(newCreation);
   setLocalCreations(creations);
+  apiPost('/api/creations', payload).catch(() => {});
   return newCreation;
 };
 
 export const updateCreation = async (id, creationData) => {
-  try {
-    const result = await apiPut(`/api/creations/${id}`, creationData);
-    if (result) {
-      const list = getLocalCreations();
-      const idx = list.findIndex(c => c.id === id);
-      if (idx !== -1) {
-        list[idx] = { ...list[idx], ...creationData };
-        setLocalCreations(list);
-      }
-      return result;
-    }
-  } catch (e) {}
-
   if (isFirebaseConfigured && db) {
     try {
-      await updateDoc(doc(db, CREATIONS_COLLECTION, id), {
+      await setDoc(doc(db, CREATIONS_COLLECTION, id), {
         ...creationData,
         updatedAt: serverTimestamp(),
-      });
-      return { id, ...creationData };
-    } catch (err) {}
+      }, { merge: true });
+    } catch (err) {
+      console.error('[creationService] Firestore update error:', err);
+    }
   }
 
   const creations = getLocalCreations();
   const idx = creations.findIndex(c => c.id === id);
   if (idx !== -1) {
-    creations[idx] = { 
-      ...creations[idx], 
-      ...creationData, 
-      updatedAt: new Date().toISOString() 
-    };
+    creations[idx] = { ...creations[idx], ...creationData };
     setLocalCreations(creations);
-    return creations[idx];
   }
-  throw new Error('Creation not found');
+  apiPut(`/api/creations/${id}`, creationData).catch(() => {});
+  return { id, ...creationData };
 };
 
 export const deleteCreation = async (id) => {
-  try {
-    await apiDelete(`/api/creations/${id}`);
-    const list = getLocalCreations().filter(c => c.id !== id);
-    setLocalCreations(list);
-    return true;
-  } catch (e) {}
-
   if (isFirebaseConfigured && db) {
     try {
       await deleteDoc(doc(db, CREATIONS_COLLECTION, id));
-    } catch (err) {}
+    } catch (err) {
+      console.error('[creationService] Firestore delete error:', err);
+    }
   }
 
-  const creations = getLocalCreations();
-  const filtered = creations.filter(c => c.id !== id);
-  setLocalCreations(filtered);
+  const creations = getLocalCreations().filter(c => c.id !== id);
+  setLocalCreations(creations);
+  apiDelete(`/api/creations/${id}`).catch(() => {});
   return true;
 };
 
-export const reorderCreations = async (orderedList) => {
-  const updated = orderedList.map((item, index) => ({
-    ...item,
-    order: index,
-  }));
-  setLocalCreations(updated);
-
-  try {
-    await apiPost('/api/creations/reorder', { orderedList: updated });
-    return updated;
-  } catch (e) {}
-
+export const reorderCreations = async (orderedCreations) => {
+  setLocalCreations(orderedCreations);
   if (isFirebaseConfigured && db) {
     try {
-      await Promise.all(
-        updated.map(item => 
-          updateDoc(doc(db, CREATIONS_COLLECTION, item.id), { order: item.order })
-        )
+      const batchPromises = orderedCreations.map((item, index) => 
+        setDoc(doc(db, CREATIONS_COLLECTION, item.id), { order: index }, { merge: true })
       );
-    } catch (err) {}
+      await Promise.all(batchPromises);
+    } catch (err) {
+      console.error('[creationService] Firestore reorder error:', err);
+    }
   }
-  return updated;
+  apiPost('/api/creations/reorder', {
+    orderMap: orderedCreations.map((c, idx) => ({ id: c.id, order: idx })),
+  }).catch(() => {});
+  return orderedCreations;
 };

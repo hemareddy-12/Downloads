@@ -2,6 +2,7 @@ import {
   collection, 
   doc, 
   getDocs, 
+  getDocsFromServer,
   addDoc, 
   updateDoc, 
   serverTimestamp 
@@ -33,6 +34,23 @@ export const submitCustomEnquiry = async (enquiryData) => {
     createdAt: new Date().toISOString(),
   };
 
+  // 1. PRIMARY: Firestore
+  if (isFirebaseConfigured && db) {
+    try {
+      const docRef = await addDoc(collection(db, ENQUIRIES_COLLECTION), {
+        ...newEnquiry,
+        serverCreatedAt: serverTimestamp(),
+      });
+      const created = { id: docRef.id, ...newEnquiry };
+      const list = getLocal(LOCAL_ENQUIRIES_KEY);
+      list.unshift(created);
+      setLocal(LOCAL_ENQUIRIES_KEY, list);
+      apiPost('/api/enquiries', newEnquiry).catch(() => {});
+      return created;
+    } catch (err) {}
+  }
+
+  // 2. Server API fallback
   try {
     const res = await apiPost('/api/enquiries', newEnquiry);
     if (res && res.id) {
@@ -43,16 +61,7 @@ export const submitCustomEnquiry = async (enquiryData) => {
     }
   } catch (e) {}
 
-  if (isFirebaseConfigured && db) {
-    try {
-      const docRef = await addDoc(collection(db, ENQUIRIES_COLLECTION), {
-        ...newEnquiry,
-        serverCreatedAt: serverTimestamp(),
-      });
-      return { id: docRef.id, ...newEnquiry };
-    } catch (err) {}
-  }
-
+  // 3. Local fallback
   const list = getLocal(LOCAL_ENQUIRIES_KEY);
   const item = { id: `enq-${Date.now()}`, ...newEnquiry };
   list.unshift(item);
@@ -61,6 +70,29 @@ export const submitCustomEnquiry = async (enquiryData) => {
 };
 
 export const getCustomEnquiries = async () => {
+  // 1. PRIMARY: Firestore with NO CACHE
+  if (isFirebaseConfigured && db) {
+    try {
+      let snapshot;
+      try {
+        snapshot = await getDocsFromServer(collection(db, ENQUIRIES_COLLECTION));
+      } catch (e) {
+        snapshot = await getDocs(collection(db, ENQUIRIES_COLLECTION));
+      }
+      if (snapshot) {
+        const list = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        list.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+        setLocal(LOCAL_ENQUIRIES_KEY, list);
+        return list;
+      }
+    } catch (err) {}
+  }
+
+  // 2. Local fallback
+  const localList = getLocal(LOCAL_ENQUIRIES_KEY);
+  if (localList && localList.length > 0) return localList;
+
+  // 3. Server fallback
   try {
     const serverList = await apiGet('/api/enquiries');
     if (Array.isArray(serverList)) {
@@ -69,14 +101,7 @@ export const getCustomEnquiries = async () => {
     }
   } catch (e) {}
 
-  if (isFirebaseConfigured && db) {
-    try {
-      const snapshot = await getDocs(collection(db, ENQUIRIES_COLLECTION));
-      const list = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-      return list.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
-    } catch (err) {}
-  }
-  return getLocal(LOCAL_ENQUIRIES_KEY);
+  return [];
 };
 
 export const updateEnquiryStatus = async (id, status) => {
@@ -86,7 +111,6 @@ export const updateEnquiryStatus = async (id, status) => {
         status,
         updatedAt: serverTimestamp(),
       });
-      return { id, status };
     } catch (err) {}
   }
   const list = getLocal(LOCAL_ENQUIRIES_KEY);
@@ -96,7 +120,7 @@ export const updateEnquiryStatus = async (id, status) => {
     setLocal(LOCAL_ENQUIRIES_KEY, list);
     return list[idx];
   }
-  throw new Error('Enquiry not found');
+  return { id, status };
 };
 
 // ================= CONTACT MESSAGES =================
@@ -108,6 +132,23 @@ export const submitContactMessage = async (msgData) => {
     createdAt: new Date().toISOString(),
   };
 
+  // 1. PRIMARY: Firestore
+  if (isFirebaseConfigured && db) {
+    try {
+      const docRef = await addDoc(collection(db, MESSAGES_COLLECTION), {
+        ...newMsg,
+        serverCreatedAt: serverTimestamp(),
+      });
+      const created = { id: docRef.id, ...newMsg };
+      const list = getLocal(LOCAL_MESSAGES_KEY);
+      list.unshift(created);
+      setLocal(LOCAL_MESSAGES_KEY, list);
+      apiPost('/api/messages', newMsg).catch(() => {});
+      return created;
+    } catch (err) {}
+  }
+
+  // 2. Server API
   try {
     const res = await apiPost('/api/messages', newMsg);
     if (res && res.id) {
@@ -118,16 +159,7 @@ export const submitContactMessage = async (msgData) => {
     }
   } catch (e) {}
 
-  if (isFirebaseConfigured && db) {
-    try {
-      const docRef = await addDoc(collection(db, MESSAGES_COLLECTION), {
-        ...newMsg,
-        serverCreatedAt: serverTimestamp(),
-      });
-      return { id: docRef.id, ...newMsg };
-    } catch (err) {}
-  }
-
+  // 3. Local fallback
   const list = getLocal(LOCAL_MESSAGES_KEY);
   const item = { id: `msg-${Date.now()}`, ...newMsg };
   list.unshift(item);
@@ -136,6 +168,29 @@ export const submitContactMessage = async (msgData) => {
 };
 
 export const getContactMessages = async () => {
+  // 1. PRIMARY: Firestore
+  if (isFirebaseConfigured && db) {
+    try {
+      let snapshot;
+      try {
+        snapshot = await getDocsFromServer(collection(db, MESSAGES_COLLECTION));
+      } catch (e) {
+        snapshot = await getDocs(collection(db, MESSAGES_COLLECTION));
+      }
+      if (snapshot) {
+        const list = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        list.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+        setLocal(LOCAL_MESSAGES_KEY, list);
+        return list;
+      }
+    } catch (err) {}
+  }
+
+  // 2. Local fallback
+  const localList = getLocal(LOCAL_MESSAGES_KEY);
+  if (localList && localList.length > 0) return localList;
+
+  // 3. Server fallback
   try {
     const serverList = await apiGet('/api/messages');
     if (Array.isArray(serverList)) {
@@ -144,12 +199,5 @@ export const getContactMessages = async () => {
     }
   } catch (e) {}
 
-  if (isFirebaseConfigured && db) {
-    try {
-      const snapshot = await getDocs(collection(db, MESSAGES_COLLECTION));
-      const list = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-      return list.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
-    } catch (err) {}
-  }
-  return getLocal(LOCAL_MESSAGES_KEY);
+  return [];
 };
