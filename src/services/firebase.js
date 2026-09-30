@@ -3,37 +3,42 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
-const getEnv = (viteKey, nextKey) => {
-  return import.meta.env[viteKey] || import.meta.env[nextKey] || '';
-};
+// In Vite projects, environment variables MUST be accessed via import.meta.env.VITE_*
+const apiKey = (import.meta.env.VITE_FIREBASE_API_KEY || import.meta.env.NEXT_PUBLIC_FIREBASE_API_KEY || '').trim();
+const authDomain = (import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || import.meta.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || '').trim();
+const projectId = (import.meta.env.VITE_FIREBASE_PROJECT_ID || import.meta.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || '').trim();
+const storageBucket = (import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || import.meta.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || '').trim();
+const messagingSenderId = (import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || import.meta.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '').trim();
+const appId = (import.meta.env.VITE_FIREBASE_APP_ID || import.meta.env.NEXT_PUBLIC_FIREBASE_APP_ID || '').trim();
+const measurementId = (import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || import.meta.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || '').trim();
 
 const firebaseConfig = {
-  apiKey: getEnv('VITE_FIREBASE_API_KEY', 'NEXT_PUBLIC_FIREBASE_API_KEY'),
-  authDomain: getEnv('VITE_FIREBASE_AUTH_DOMAIN', 'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN'),
-  projectId: getEnv('VITE_FIREBASE_PROJECT_ID', 'NEXT_PUBLIC_FIREBASE_PROJECT_ID'),
-  storageBucket: getEnv('VITE_FIREBASE_STORAGE_BUCKET', 'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET'),
-  messagingSenderId: getEnv('VITE_FIREBASE_MESSAGING_SENDER_ID', 'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID'),
-  appId: getEnv('VITE_FIREBASE_APP_ID', 'NEXT_PUBLIC_FIREBASE_APP_ID'),
-  measurementId: getEnv('VITE_FIREBASE_MEASUREMENT_ID', 'NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID'),
+  apiKey,
+  authDomain,
+  projectId,
+  storageBucket,
+  messagingSenderId,
+  appId,
+  measurementId,
 };
 
-// Console log config for debugging env variables loading
-console.log('[Label HemaReddy] firebaseConfig:', {
-  apiKey: firebaseConfig.apiKey ? `${firebaseConfig.apiKey.substring(0, 6)}... (length: ${firebaseConfig.apiKey.length})` : 'MISSING',
-  authDomain: firebaseConfig.authDomain || 'MISSING',
-  projectId: firebaseConfig.projectId || 'MISSING',
-  storageBucket: firebaseConfig.storageBucket || 'MISSING',
-  messagingSenderId: firebaseConfig.messagingSenderId || 'MISSING',
-  appId: firebaseConfig.appId ? `${firebaseConfig.appId.substring(0, 8)}...` : 'MISSING',
-  measurementId: firebaseConfig.measurementId || 'MISSING',
-});
+// Console.log the apiKey to verify it's loaded (first 10 chars only for safety)
+if (apiKey) {
+  console.log('[Label HemaReddy] Firebase API Key loaded:', apiKey.substring(0, 10) + '... (total length: ' + apiKey.length + ')');
+} else {
+  console.warn('[Label HemaReddy] Firebase API Key is NOT loaded / empty. Check your VITE_FIREBASE_API_KEY in .env or Vercel Environment Variables.');
+}
 
-// Check if valid Firebase configuration is supplied
+console.log('[Label HemaReddy] Firebase Project ID:', projectId || 'EMPTY');
+
+// Check if valid Firebase configuration is supplied (must have non-placeholder valid API key)
 export const isFirebaseConfigured = Boolean(
-  firebaseConfig.apiKey &&
-  firebaseConfig.projectId &&
-  firebaseConfig.apiKey !== '' &&
-  !firebaseConfig.apiKey.includes('YOUR_')
+  apiKey &&
+  projectId &&
+  apiKey !== '' &&
+  !apiKey.includes('YOUR_') &&
+  !apiKey.endsWith('...') &&
+  apiKey.length > 20
 );
 
 console.log('[Label HemaReddy] isFirebaseConfigured:', isFirebaseConfigured);
@@ -54,7 +59,7 @@ if (isFirebaseConfigured) {
     console.error('[Label HemaReddy] Error initializing Firebase:', error);
   }
 } else {
-  console.info('[Label HemaReddy] Running in Local Studio Mode. Connect live Firebase by providing credentials in .env');
+  console.info('[Label HemaReddy] Running in Local Studio Mode. Connect live Firebase by providing valid credentials in .env');
 }
 
 export { app, auth, db, storage, firebaseConfig };

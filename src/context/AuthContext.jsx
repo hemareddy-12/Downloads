@@ -17,24 +17,7 @@ export const AuthProvider = ({ children }) => {
   // Verify backend admin session on load
   useEffect(() => {
     const verifySession = async () => {
-      // 1. If Firebase is configured, listen to Firebase Auth
-      if (isFirebaseConfigured && auth) {
-        const unsubscribe = onAuthStateChanged(auth, async (user) => {
-          if (user) {
-            const adminEmail = (import.meta.env.VITE_ADMIN_EMAIL || 'admin@labelhemareddy.com').toLowerCase();
-            const userIsAdmin = user.email?.toLowerCase() === adminEmail || user.email?.toLowerCase().includes('admin');
-            setIsAdmin(userIsAdmin);
-            setCurrentUser(user);
-          } else {
-            setIsAdmin(false);
-            setCurrentUser(null);
-          }
-          setLoading(false);
-        });
-        return unsubscribe;
-      }
-
-      // 2. Otherwise verify token with backend server
+      // 1. Verify backend token first
       const token = getAdminToken();
       if (token) {
         try {
@@ -42,20 +25,37 @@ export const AuthProvider = ({ children }) => {
           if (res && res.authenticated) {
             setIsAdmin(true);
             setCurrentUser(res.user);
-          } else {
-            setIsAdmin(false);
-            setCurrentUser(null);
-            removeAdminToken();
+            setLoading(false);
+            return;
           }
         } catch (e) {
-          setIsAdmin(false);
-          setCurrentUser(null);
           removeAdminToken();
         }
-      } else {
-        setIsAdmin(false);
-        setCurrentUser(null);
       }
+
+      // 2. If Firebase is configured, check Firebase Auth
+      if (isFirebaseConfigured && auth) {
+        try {
+          const unsubscribe = onAuthStateChanged(auth, async (user) => {
+            if (user) {
+              const adminEmail = (import.meta.env.VITE_ADMIN_EMAIL || 'labelhemareddy@gmail.com').toLowerCase();
+              const userIsAdmin = user.email?.toLowerCase() === adminEmail || user.email?.toLowerCase().includes('admin');
+              setIsAdmin(userIsAdmin);
+              setCurrentUser(user);
+            } else if (!token) {
+              setIsAdmin(false);
+              setCurrentUser(null);
+            }
+            setLoading(false);
+          });
+          return unsubscribe;
+        } catch (err) {
+          console.warn('[AuthContext] Firebase Auth listener error:', err);
+        }
+      }
+
+      setIsAdmin(false);
+      setCurrentUser(null);
       setLoading(false);
     };
 
@@ -63,21 +63,22 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const adminLogin = async (email, password) => {
-    // 1. If Firebase Auth is configured, sign in via Firebase
+    // 1. If Firebase Auth is configured, attempt Firebase Auth sign-in
     if (isFirebaseConfigured && auth) {
       try {
         const cred = await signInWithEmailAndPassword(auth, email, password);
-        const adminEmail = (import.meta.env.VITE_ADMIN_EMAIL || 'admin@labelhemareddy.com').toLowerCase();
+        const adminEmail = (import.meta.env.VITE_ADMIN_EMAIL || 'labelhemareddy@gmail.com').toLowerCase();
         const userIsAdmin = cred.user.email?.toLowerCase() === adminEmail || cred.user.email?.toLowerCase().includes('admin');
         setIsAdmin(userIsAdmin);
         setCurrentUser(cred.user);
         return { success: true, user: cred.user };
-      } catch (err) {
-        throw new Error(err.message || 'Authentication failed');
+      } catch (firebaseErr) {
+        console.warn('[AuthContext] Firebase Auth sign-in failed, trying backend admin credentials:', firebaseErr.code || firebaseErr.message);
+        // Fall through to backend server verification!
       }
     }
 
-    // 2. Authenticate securely with backend server API (no credentials stored in frontend code)
+    // 2. Authenticate securely with backend server API (permanent hashed admin credentials)
     try {
       const data = await apiPost('/api/admin/login', { email, password });
       if (data && data.success && data.token) {
