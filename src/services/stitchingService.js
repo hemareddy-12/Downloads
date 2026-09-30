@@ -152,6 +152,7 @@ export const createStitchingService = async (serviceData) => {
       return created;
     } catch (err) {
       console.error('[stitchingService] Firestore create error:', err);
+      throw err;
     }
   }
 
@@ -192,7 +193,7 @@ export const updateStitchingService = async (id, serviceData) => {
       console.log('[stitchingService] Firestore update successful for ID:', id);
     } catch (err) {
       console.error('[stitchingService] Firestore update error for ID:', id, err);
-      throw new Error(`Failed to save to Firestore: ${err.message}`);
+      throw err;
     }
   }
 

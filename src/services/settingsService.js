@@ -80,6 +80,7 @@ export const saveBrandSettings = async (settings) => {
       }, { merge: true });
     } catch (err) {
       console.error('[settingsService] Firestore saveBrandSettings error:', err);
+      throw err;
     }
   }
 
@@ -142,6 +143,7 @@ export const saveWebsiteSettings = async (settings) => {
       }, { merge: true });
     } catch (err) {
       console.error('[settingsService] Firestore saveWebsiteSettings error:', err);
+      throw err;
     }
   }
 
@@ -204,6 +206,7 @@ export const saveAboutSettings = async (settings) => {
       }, { merge: true });
     } catch (err) {
       console.error('[settingsService] Firestore saveAboutSettings error:', err);
+      throw err;
     }
   }
 
@@ -266,6 +269,7 @@ export const saveContactSettings = async (settings) => {
       }, { merge: true });
     } catch (err) {
       console.error('[settingsService] Firestore saveContactSettings error:', err);
+      throw err;
     }
   }
 

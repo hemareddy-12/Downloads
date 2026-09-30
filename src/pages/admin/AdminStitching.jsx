@@ -248,8 +248,9 @@ export const AdminStitching = () => {
       // Background reload without overwriting optimistic update
       loadData();
     } catch (err) {
-      console.error('Error saving stitching service:', err);
-      toast.error(err.message || 'Failed to save service');
+      console.error("FULL ERROR:", err);
+      const codeStr = err?.code ? ` Code: ${err.code}` : '';
+      toast.error(`Failed: ${err?.message || 'Failed to save service'}${codeStr}`);
     } finally {
       setSubmittingService(false);
     }
@@ -263,8 +264,9 @@ export const AdminStitching = () => {
       showNotification(`Deleted "${title}"`);
       await loadData();
     } catch (err) {
-      console.error('Error deleting service:', err);
-      showNotification('Failed to delete service', 'error');
+      console.error("FULL ERROR:", err);
+      const codeStr = err?.code ? ` Code: ${err.code}` : '';
+      showNotification(`Failed to delete service: ${err?.message || ''}${codeStr}`, 'error');
     }
   };
 

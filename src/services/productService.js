@@ -131,7 +131,7 @@ export const createProduct = async (productData) => {
       return created;
     } catch (err) {
       console.error('[productService] Firestore createProduct error:', err);
-      throw new Error(`Failed to save product to Firestore: ${err.message}`);
+      throw err;
     }
   }
 
@@ -165,7 +165,7 @@ export const updateProduct = async (id, productData) => {
       console.log('[productService] Firestore product updated successfully:', id);
     } catch (err) {
       console.error('[productService] Firestore updateProduct error:', err);
-      throw new Error(`Failed to update product in Firestore: ${err.message}`);
+      throw err;
     }
   }
 

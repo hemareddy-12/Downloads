@@ -99,8 +99,9 @@ export const AdminBrandSettings = () => {
       setSuccess('Brand settings saved successfully! All updates are now active on the website.');
       setTimeout(() => setSuccess(''), 4000);
     } catch (err) {
-      console.error(err);
-      setError('Failed to save brand settings.');
+      console.error("FULL ERROR:", err);
+      const codeStr = err?.code ? ` Code: ${err.code}` : '';
+      setError(`Failed: ${err?.message || 'Failed to save brand settings'}${codeStr}`);
     } finally {
       setSaving(false);
     }

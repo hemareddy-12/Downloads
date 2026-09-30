@@ -233,8 +233,9 @@ export const AdminWebsiteSettings = () => {
       setSuccess('Website settings saved successfully! All updates are live.');
       setTimeout(() => setSuccess(''), 4000);
     } catch (err) {
-      console.error(err);
-      setError('Failed to save website settings.');
+      console.error("FULL ERROR:", err);
+      const codeStr = err?.code ? ` Code: ${err.code}` : '';
+      setError(`Failed: ${err?.message || 'Failed to save website settings'}${codeStr}`);
     } finally {
       setSaving(false);
     }

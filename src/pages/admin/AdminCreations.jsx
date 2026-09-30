@@ -213,8 +213,9 @@ export const AdminCreations = () => {
       setIsModalOpen(false);
       await loadCreations();
     } catch (err) {
-      console.error('Error saving creation:', err);
-      showNotification('Failed to save creation', 'error');
+      console.error("FULL ERROR:", err);
+      const codeStr = err?.code ? ` Code: ${err.code}` : '';
+      showNotification(`Failed: ${err?.message || 'Failed to save creation'}${codeStr}`, 'error');
     } finally {
       setSubmitting(false);
     }
@@ -229,8 +230,9 @@ export const AdminCreations = () => {
       showNotification(`Deleted "${title}"`);
       await loadCreations();
     } catch (err) {
-      console.error('Error deleting creation:', err);
-      showNotification('Failed to delete creation', 'error');
+      console.error("FULL ERROR:", err);
+      const codeStr = err?.code ? ` Code: ${err.code}` : '';
+      showNotification(`Failed to delete creation: ${err?.message || ''}${codeStr}`, 'error');
     }
   };
 
@@ -248,7 +250,9 @@ export const AdminCreations = () => {
       await reorderCreations(reordered);
       showNotification('Portfolio order updated');
     } catch (err) {
-      console.error('Error reordering creations:', err);
+      console.error("FULL ERROR:", err);
+      const codeStr = err?.code ? ` Code: ${err.code}` : '';
+      showNotification(`Failed to reorder: ${err?.message || ''}${codeStr}`, 'error');
     }
   };
 

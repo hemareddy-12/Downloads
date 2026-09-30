@@ -70,7 +70,9 @@ export const AdminCategories = () => {
         setSuccess(`Category "${name}" deleted.`);
         setTimeout(() => setSuccess(''), 3000);
       } catch (err) {
-        setError('Failed to delete category.');
+        console.error("FULL ERROR:", err);
+        const codeStr = err?.code ? ` Code: ${err.code}` : '';
+        setError(`Failed to delete category: ${err?.message || ''}${codeStr}`);
       }
     }
   };
@@ -105,7 +107,9 @@ export const AdminCategories = () => {
       setIsModalOpen(false);
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
-      setError('Failed to save category.');
+      console.error("FULL ERROR:", err);
+      const codeStr = err?.code ? ` Code: ${err.code}` : '';
+      setError(`Failed: ${err?.message || 'Failed to save category'}${codeStr}`);
     } finally {
       setLoading(false);
     }

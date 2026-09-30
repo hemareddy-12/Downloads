@@ -90,8 +90,9 @@ export const AdminAbout = () => {
       await updateAbout(formData);
       showNotification('About section updated successfully!');
     } catch (err) {
-      console.error('Error saving about settings:', err);
-      showNotification('Failed to save settings', 'error');
+      console.error("FULL ERROR:", err);
+      const codeStr = err?.code ? ` Code: ${err.code}` : '';
+      showNotification(`Failed: ${err?.message || 'Error saving settings'}${codeStr}`, 'error');
     } finally {
       setSaving(false);
     }

@@ -138,7 +138,9 @@ export const AdminProducts = () => {
         setSuccess(`"${name}" was deleted successfully.`);
         setTimeout(() => setSuccess(''), 3000);
       } catch (err) {
-        setError('Failed to delete product.');
+        console.error("FULL ERROR:", err);
+        const codeStr = err?.code ? ` Code: ${err.code}` : '';
+        setError(`Failed to delete product: ${err?.message || ''}${codeStr}`);
       }
     }
   };
@@ -187,8 +189,9 @@ export const AdminProducts = () => {
       setIsModalOpen(false);
       setTimeout(() => setSuccess(''), 3000);
     } catch (err) {
-      console.error('Error saving product:', err);
-      setError('Failed to save product. Please check your entries.');
+      console.error("FULL ERROR:", err);
+      const codeStr = err?.code ? ` Code: ${err.code}` : '';
+      setError(`Failed: ${err?.message || 'Error saving product'}${codeStr}`);
     } finally {
       setLoading(false);
     }

@@ -92,8 +92,9 @@ export const AdminContact = () => {
 
       showNotification('Contact details updated successfully!');
     } catch (err) {
-      console.error('Error saving contact settings:', err);
-      showNotification('Failed to save contact settings', 'error');
+      console.error("FULL ERROR:", err);
+      const codeStr = err?.code ? ` Code: ${err.code}` : '';
+      showNotification(`Failed: ${err?.message || 'Failed to save contact settings'}${codeStr}`, 'error');
     } finally {
       setSaving(false);
     }

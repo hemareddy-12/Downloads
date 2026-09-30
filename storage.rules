@@ -2,45 +2,8 @@ rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
-
-    function isAdmin() {
-      return request.auth != null && (
-        request.auth.token.email.matches('.*admin.*') ||
-        request.auth.token.email == 'admin@labelhemareddy.com'
-      );
-    }
-
-    // Public catalog images, brand logos, watermark assets, and designer portraits
-    match /products/{allPaths=**} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    match /brand-logos/{allPaths=**} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    match /watermarks/{allPaths=**} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    match /designer-profile/{allPaths=**} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    match /categories/{allPaths=**} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-
-    // Customer enquiry reference sketches
-    match /enquiry-references/{allPaths=**} {
-      allow create: if request.resource.size < 10 * 1024 * 1024
-                    && request.resource.contentType.matches('image/.*');
-      allow read, delete: if isAdmin();
+    match /{allPaths=**} {
+      allow read, write: if true;
     }
   }
 }
